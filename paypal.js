@@ -59,3 +59,16 @@ export const listInvoices = () =>
 
 export const sendReminder = (invoiceId, subject, note) =>
   api(`/v2/invoicing/invoices/${invoiceId}/remind`, 'POST', { subject, note, send_to_recipient: true });
+
+export async function verifyWebhook(headers, event) {
+  const data = await api('/v1/notifications/verify-webhook-signature', 'POST', {
+    auth_algo: headers['paypal-auth-algo'],
+    cert_url: headers['paypal-cert-url'],
+    transmission_id: headers['paypal-transmission-id'],
+    transmission_sig: headers['paypal-transmission-sig'],
+    transmission_time: headers['paypal-transmission-time'],
+    webhook_id: process.env.PAYPAL_WEBHOOK_ID,
+    webhook_event: event,
+  });
+  return data.verification_status === 'SUCCESS';
+}
